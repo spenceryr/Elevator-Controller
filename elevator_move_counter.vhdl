@@ -19,14 +19,16 @@ begin
     if rising_edge(clk) then
       if reset = '1' then
         counter <= 0;
-      elsif elevator_state = start_moving_up or elevator_state = start_moving_down or elevator_state = moving_up or elevator_state = moving_down then
-        counter <= (counter + 1) mod (wait_time-1);
+      elsif elevator_state = start_moving_up or elevator_state = moving_up then
+        counter <= (counter + 1) mod wait_time;
+      elsif elevator_state = start_moving_down or elevator_state = moving_down then
+        counter <= (counter - 1) mod wait_time;
       else
         counter <= 0;
       end if;
     end if;
   end process;
 
-  elevator_at_floor <= counter = 0;
+  elevator_at_floor <= counter = 0 or abs counter = wait_time - 1;
 
 end move_counter_behavior;
