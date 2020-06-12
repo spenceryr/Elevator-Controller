@@ -28,32 +28,32 @@ architecture fsm_behavior of elev_fsm is
     signal track_down: std_logic := '0';
     signal current_floor: std_logic_vector(floors-1 downto 0) := (floors-1 downto 1 => '0') & '1';
 
-    function find_desired(buttons: std_logic_vector(floors-1 downto 0);
+    function find_target(buttons: std_logic_vector(floors-1 downto 0);
                           priority: directions_t)
                           return std_logic_vector is
-      variable desired: std_logic_vector(floors-1 downto 0) := (others => '0');
+      variable target: std_logic_vector(floors-1 downto 0) := (others => '0');
     begin
       if priority = down then
-        desired(buttons'low) := '1';
+        target(buttons'low) := '1';
         for i in buttons'low to buttons'high loop
           if buttons(i) = '1' then
-            return desired;
+            return target;
           else
-            desired := desired(buttons'high - 1 downto 0) & '0';
+            target := target(buttons'high - 1 downto 0) & '0';
           end if;
         end loop;
       elsif priority = up then
-        desired(buttons'high) := '1';
+        target(buttons'high) := '1';
         for i in buttons'low to buttons'high loop
           if buttons(buttons'high - i) = '1' then
-            return desired;
+            return target;
           else
-            desired := '0' & desired(buttons'high downto 1);
+            target := '0' & target(buttons'high downto 1);
           end if;
         end loop;
       end if;
-      return desired;
-    end find_desired;
+      return target;
+    end find_target;
 
     component elev_tracker
       generic (floors: natural := 2);
@@ -91,30 +91,36 @@ begin
     process (clk, state, door_open_ready,
              door_close_ready, done_waiting, elevator_at_floor,
              ext_buttons, int_buttons) is
-      variable desired_floor: std_logic_vector(floors-1 downto 0) := (others => '0');
+      variable target_floor: std_logic_vector(floors-1 downto 0) := (others => '0');
     begin
       if rising_edge(clk) then
         if reset = '1' then
           state <= idle;
           direction_priority <= up;
-          desired_floor := (others => '0');
+          target_floor := (others => '0');
         else
           case state is
             when idle =>
-              if unsigned(int_buttons) /= 0 then
-                desired_floor := find_desired(buttons => int_buttons, priority => direction_priority);
-              elsif unsigned(ext_buttons) /= 0 then
-                desired_floor := find_desired(buttons => ext_buttons, priority => direction_priority);
-              else
-                desired_floor := (others => '0');
+              if current_floor = target_floor or unsigned(target_floor) = 0 then
+                if unsigned(int_buttons) /= 0 then
+                  target_floor := find_target(buttons => int_buttons, priority => direction_priority);
+                elsif unsigned(ext_buttons) /= 0 then
+                  target_floor := find_target(buttons => ext_buttons, priority => direction_priority);
+                else
+                  target_floor := (others => '0');
+                end if;
               end if;
 
               if unsigned((int_buttons or ext_buttons) and current_floor) > 0 then
                 state <= opening_door;
-              elsif unsigned(desired_floor) = 0 then
-                direction_priority <= up;
+              elsif unsigned(target_floor) = 0 then
+                if direction_priority = up then
+                  direction_priority <= down;
+                else
+                  direction_priority <= up;
+                end if;
                 state <= idle;
-              elsif unsigned(desired_floor) > unsigned(current_floor) then
+              elsif unsigned(target_floor) > unsigned(current_floor) then
                 direction_priority <= down;
                 state <= start_moving_up;
               else
@@ -155,9 +161,6 @@ begin
             when moving_up =>
               if elevator_at_floor then
                 if unsigned((int_buttons or ext_buttons) and current_floor) > 0 then
-                  if unsigned(current_floor and desired_floor) = 0 then
-                    direction_priority <= up;
-                  end if;
                   state <= idle;
                 elsif current_floor(floors-1) = '1' then
                   state <= idle;
@@ -173,9 +176,6 @@ begin
             when moving_down =>
               if elevator_at_floor then
                 if unsigned((int_buttons or ext_buttons) and current_floor) > 0 then
-                  if unsigned(current_floor and desired_floor) = 0 then
-                    direction_priority <= down;
-                  end if;
                   state <= idle;
                 elsif current_floor(0) = '1' then
                   state <= idle;

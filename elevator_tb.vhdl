@@ -85,6 +85,10 @@ begin
       wait for clk_period;
       ext_requests <= "00000";
       int_requests <= "00000";
+      wait until ((elevator_current_floor = 1) and (door_state = opened));
+      wait until ((elevator_current_floor = 2) and (door_state = opened));
+      wait until ((elevator_current_floor = 3) and (door_state = opened));
+      wait until ((elevator_current_floor = 4) and (door_state = opened));
       wait until ((elevator_current_floor = 5) and (door_state = opened));
       wait for clk_period/2;
       wait for clk_period * 10;
@@ -97,6 +101,10 @@ begin
       wait for clk_period;
       ext_requests <= "00000";
       int_requests <= "00000";
+      wait until ((elevator_current_floor = 5) and (door_state = opened));
+      wait until ((elevator_current_floor = 4) and (door_state = opened));
+      wait until ((elevator_current_floor = 3) and (door_state = opened));
+      wait until ((elevator_current_floor = 2) and (door_state = opened));
       wait until ((elevator_current_floor = 1) and (door_state = opened));
       wait for clk_period/2;
       wait for clk_period * 10;
@@ -109,6 +117,7 @@ begin
       wait for clk_period;
       ext_requests <= "00000";
       int_requests <= "00000";
+      wait until ((elevator_current_floor = 2) and (door_state = opened));
       wait until ((elevator_current_floor = 3) and (door_state = opened));
       wait for clk_period/2;
       wait for clk_period * 10;
@@ -121,6 +130,8 @@ begin
       wait for clk_period;
       ext_requests <= "00000";
       int_requests <= "00000";
+      wait until ((elevator_current_floor = 2) and (door_state = opened));
+      wait until ((elevator_current_floor = 5) and (door_state = opened));
       wait until ((elevator_current_floor = 1) and (door_state = opened));
       wait for clk_period/2;
       wait for clk_period * 10;
@@ -140,6 +151,8 @@ begin
       wait for clk_period;
       ext_requests <= "00000";
       int_requests <= "00000";
+      wait until ((elevator_current_floor = 2) and (door_state = opened));
+      wait until ((elevator_current_floor = 3) and (door_state = opened));
       wait until ((elevator_current_floor = 5) and (door_state = opened));
       wait for clk_period/2;
       wait for clk_period * 10;
