@@ -12,7 +12,7 @@ port (clk: in std_logic;
 end move_counter;
 
 architecture move_counter_behavior of move_counter is
-  signal counter: natural := 0;
+  signal counter: integer := 0;
 begin
   process (clk, reset, counter, elevator_state) is
   begin
@@ -22,13 +22,13 @@ begin
       elsif elevator_state = start_moving_up or elevator_state = moving_up then
         counter <= (counter + 1) mod wait_time;
       elsif elevator_state = start_moving_down or elevator_state = moving_down then
-        counter <= (counter - 1) mod wait_time;
+        counter <= (counter - 1) rem wait_time;
       else
         counter <= 0;
       end if;
     end if;
   end process;
 
-  elevator_at_floor <= counter = 0 or abs counter = wait_time - 1;
+  elevator_at_floor <= (counter = 0) or ((abs counter) = (wait_time - 1));
 
 end move_counter_behavior;

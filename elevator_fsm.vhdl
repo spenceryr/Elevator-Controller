@@ -127,6 +127,7 @@ begin
                 direction_priority <= up;
                 state <= start_moving_down;
               end if;
+              
             when opening_door =>
               if door_open_ready then
                 state <= door_opened;
